@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
+import '../../services/auth_service.dart';
+import '../auth/login_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -89,15 +91,55 @@ class _Header extends StatelessWidget {
                   ],
                 ),
               ),
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.13),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Center(child: Text('🔔', style: TextStyle(fontSize: 23))),
-              ),
+Row(
+  children: [
+    Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.13),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: IconButton(
+        icon: const Icon(
+          Icons.logout_rounded,
+          color: Colors.white,
+          size: 22,
+        ),
+        onPressed: () async {
+          await AuthService().logout();
+
+          if (!context.mounted) return;
+
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const LoginScreen(),
+            ),
+            (route) => false,
+          );
+        },
+      ),
+    ),
+
+    const SizedBox(width: 10),
+
+    Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.13),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: const Center(
+        child: Text(
+          '🔔',
+          style: TextStyle(fontSize: 23),
+        ),
+      ),
+    ),
+  ],
+),
             ],
           ),
           const SizedBox(height: 28),
