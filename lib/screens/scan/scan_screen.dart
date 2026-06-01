@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../services/farmer_service.dart';
 
-class ScanScreen extends StatelessWidget {
+class ScanScreen extends StatefulWidget {
   const ScanScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final farmers = [
-      ['Kamal Perera', 'Anuradhapura North', '1.42 ha'],
-      ['Nimal Silva', 'Polonnaruwa East', '2.02 ha'],
-      ['Sunil Fernando', 'Kurunegala Central', '0.89 ha'],
-    ];
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -36,29 +33,92 @@ class ScanScreen extends StatelessWidget {
                   const SizedBox(height: 24),
                   const Text('Select Farmer', style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 16),
-                  ...farmers.map((f) => Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(18),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: Row(
-                          children: [
-                            const Text('👤', style: TextStyle(fontSize: 24)),
-                            const SizedBox(width: 18),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(f[0], style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-                                Text(f[1], style: const TextStyle(color: AppColors.subText)),
-                                Text('📐 ${f[2]}', style: const TextStyle(color: AppColors.subText)),
-                              ],
-                            )
-                          ],
-                        ),
-                      )),
+StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+  stream: FarmerService().getMyFarmers(),
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(30),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (snapshot.hasError) {
+      return Padding(
+        padding: const EdgeInsets.all(20),
+        child: Text(
+          snapshot.error.toString(),
+          style: const TextStyle(color: Colors.red),
+        ),
+      );
+    }
+
+    final docs = snapshot.data?.docs ?? [];
+
+    if (docs.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(20),
+        child: Text(
+          'No farmers available',
+          style: TextStyle(color: AppColors.subText),
+        ),
+      );
+    }
+
+    return Column(
+      children: docs.map((doc) {
+        final farmer = doc.data();
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            children: [
+              const Text(
+                '👤',
+                style: TextStyle(fontSize: 24),
+              ),
+              const SizedBox(width: 18),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      farmer['name'] ?? '',
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      farmer['location'] ?? '',
+                      style: const TextStyle(
+                        color: AppColors.subText,
+                      ),
+                    ),
+                    Text(
+                      '📐 ${farmer['areaHa']} ha',
+                      style: const TextStyle(
+                        color: AppColors.subText,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  },
+),
                 ],
               ),
             ),

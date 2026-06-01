@@ -45,10 +45,9 @@ class FarmerService {
       throw Exception('User not logged in');
     }
 
-    return _db
-        .collection('farmers')
-        .where('supervisorId', isEqualTo: user.uid)
-        .orderBy('createdAt', descending: true)
-        .snapshots();
+return _db
+    .collection('farmers')
+    .where('supervisorId', isEqualTo: user.uid)
+    .snapshots();
   }
 }

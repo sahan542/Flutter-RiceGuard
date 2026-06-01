@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
+import '../main_shell.dart';
 
 class FarmerProfileScreen extends StatelessWidget {
   final Map<String, dynamic> farmer;
@@ -187,8 +188,14 @@ class FarmerProfileScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      onPressed: () {},
-                      child: const Text(
+onPressed: () {
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const MainShell(initialIndex: 2),
+    ),
+  );
+},                      child: const Text(
                         '🔬  Scan Leaf Now',
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),

@@ -7,15 +7,25 @@ import 'alerts/alerts_screen.dart';
 import 'more/more_screen.dart';
 
 class MainShell extends StatefulWidget {
-  const MainShell({super.key});
+  final int initialIndex;
+
+  const MainShell({
+    super.key,
+    this.initialIndex = 0,
+  });
 
   @override
   State<MainShell> createState() => _MainShellState();
 }
 
 class _MainShellState extends State<MainShell> {
-  int currentIndex = 0;
+late int currentIndex;
 
+@override
+void initState() {
+  super.initState();
+  currentIndex = widget.initialIndex;
+}
   final screens = const [
     HomeScreen(),
     FarmersScreen(),
