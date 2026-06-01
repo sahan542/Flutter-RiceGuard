@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
+import '../../services/farmer_service.dart';
 
 class AddFarmerScreen extends StatefulWidget {
   const AddFarmerScreen({super.key});
@@ -13,6 +14,10 @@ class _AddFarmerScreenState extends State<AddFarmerScreen> {
   final phoneController = TextEditingController();
   final locationController = TextEditingController();
   final areaController = TextEditingController();
+
+  final farmerService = FarmerService();
+
+  bool isLoading = false;
 
   String? selectedDistrict;
   String? selectedVariety;
@@ -41,8 +46,58 @@ class _AddFarmerScreenState extends State<AddFarmerScreen> {
     'Pachchaperumal',
   ];
 
-  void saveFarmer() {
-    Navigator.pop(context);
+  Future<void> saveFarmer() async {
+    if (nameController.text.trim().isEmpty ||
+        phoneController.text.trim().isEmpty ||
+        locationController.text.trim().isEmpty ||
+        selectedDistrict == null ||
+        areaController.text.trim().isEmpty ||
+        selectedVariety == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields')),
+      );
+      return;
+    }
+
+    try {
+      setState(() => isLoading = true);
+
+      await farmerService.addFarmer(
+        name: nameController.text.trim(),
+        phone: phoneController.text.trim(),
+        location: locationController.text.trim(),
+        district: selectedDistrict!,
+        area: areaController.text.trim(),
+        variety: selectedVariety!,
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Farmer saved successfully')),
+      );
+
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    phoneController.dispose();
+    locationController.dispose();
+    areaController.dispose();
+    super.dispose();
   }
 
   @override
@@ -139,18 +194,29 @@ class _AddFarmerScreenState extends State<AddFarmerScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.forest,
                         foregroundColor: Colors.white,
+                        disabledBackgroundColor:
+                            AppColors.forest.withOpacity(0.5),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      onPressed: saveFarmer,
-                      child: const Text(
-                        'Save Farmer',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      onPressed: isLoading ? null : saveFarmer,
+                      child: isLoading
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                          : const Text(
+                              'Save Farmer',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
                   )
                 ],
