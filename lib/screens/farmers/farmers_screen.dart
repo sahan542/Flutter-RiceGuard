@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
+import 'add_farmer_screen.dart';
 
 class FarmersScreen extends StatelessWidget {
   const FarmersScreen({super.key});
@@ -24,12 +25,26 @@ class FarmersScreen extends StatelessWidget {
                   const Expanded(
                     child: Text('Farmers', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
                   ),
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(color: AppColors.forest, borderRadius: BorderRadius.circular(12)),
-                    child: const Icon(Icons.add, color: Colors.white),
-                  )
+InkWell(
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const AddFarmerScreen(),
+      ),
+    );
+  },
+  borderRadius: BorderRadius.circular(12),
+  child: Container(
+    width: 44,
+    height: 44,
+    decoration: BoxDecoration(
+      color: AppColors.forest,
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: const Icon(Icons.add, color: Colors.white),
+  ),
+)
                 ],
               ),
             ),
