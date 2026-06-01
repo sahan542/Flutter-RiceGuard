@@ -3,7 +3,7 @@ import '../../core/constants/app_colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/farmer_service.dart';
 
-class ScanScreen extends StatefulWidget {
+class ScanScreen extends StatelessWidget {
   const ScanScreen({super.key});
 
   @override
