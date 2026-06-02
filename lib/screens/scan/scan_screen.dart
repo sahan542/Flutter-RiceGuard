@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../services/farmer_service.dart';
-import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 
 class ScanScreen extends StatefulWidget {
@@ -15,7 +14,7 @@ class ScanScreen extends StatefulWidget {
 class _ScanScreenState extends State<ScanScreen> {
   String? selectedFarmerId;
 
-  File? selectedImage;
+  XFile? selectedImage;
   final picker = ImagePicker();
 
   @override
@@ -165,13 +164,17 @@ class _ScanScreenState extends State<ScanScreen> {
                     ),
                     const SizedBox(height: 14),
                     InkWell(
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Image upload coming next'),
-                          ),
-                        );
-                      },
+onTap: () async {
+  final image = await picker.pickImage(
+    source: ImageSource.gallery,
+  );
+
+  if (image != null) {
+    setState(() {
+      selectedImage = image;
+    });
+  }
+},
                       borderRadius: BorderRadius.circular(22),
                       child: Container(
                         height: 230,
@@ -185,29 +188,39 @@ class _ScanScreenState extends State<ScanScreen> {
                             style: BorderStyle.solid,
                           ),
                         ),
-                        child: const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text('📷', style: TextStyle(fontSize: 48)),
-                            SizedBox(height: 18),
-                            Text(
-                              'Tap to capture / upload',
-                              style: TextStyle(
-                                color: AppColors.green,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'JPG or PNG · Close-up of rice leaf',
-                              style: TextStyle(
-                                color: AppColors.subText,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
+child: selectedImage == null
+    ? const Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text('📷', style: TextStyle(fontSize: 48)),
+          SizedBox(height: 18),
+          Text(
+            'Tap to capture / upload',
+            style: TextStyle(
+              color: AppColors.green,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'JPG or PNG · Close-up of rice leaf',
+            style: TextStyle(
+              color: AppColors.subText,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      )
+    : ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Image.network(
+          selectedImage!.path,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: 230,
+        ),
+      ),
                       ),
                     ),
                   ],

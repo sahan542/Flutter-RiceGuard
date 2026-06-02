@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../services/auth_service.dart';
 import '../auth/login_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../services/farmer_service.dart';
+import '../main_shell.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -16,7 +19,16 @@ class HomeScreen extends StatelessWidget {
           children: [
             _Header(),
             const SizedBox(height: 24),
-            _QuickActionCard(),
+            _QuickActionCard(
+  onTap: () {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const MainShell(initialIndex: 2),
+      ),
+    );
+  },
+),
             const SizedBox(height: 26),
             _SectionTitle(title: 'District Spread Overview'),
             const SizedBox(height: 14),
@@ -40,20 +52,56 @@ class HomeScreen extends StatelessWidget {
               color: Color(0xFFE67E22),
             ),
             const SizedBox(height: 30),
-            _SectionTitle(title: 'My Farmers', action: 'See all'),
+            _SectionTitle(
+  title: 'My Farmers',
+  action: 'See all',
+  onActionTap: () {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const MainShell(initialIndex: 1),
+      ),
+    );
+  },
+),
             const SizedBox(height: 14),
-            SizedBox(
-              height: 190,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                children: const [
-                  _FarmerCard(name: 'Kamal', variety: 'Suwandel', area: '1.42 ha', tag: 'Blast'),
-                  _FarmerCard(name: 'Nimal', variety: 'Nadu', area: '2.02 ha', tag: 'Sheath Blight'),
-                  _FarmerCard(name: 'Sunil', variety: 'Rathu Heenati', area: '0.89 ha', tag: 'Brown Spot'),
-                ],
-              ),
-            ),
+SizedBox(
+  height: 190,
+  child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+    stream: FarmerService().getMyFarmers(),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      final docs = snapshot.data?.docs ?? [];
+
+      if (docs.isEmpty) {
+        return const Center(
+          child: Text(
+            'No farmers added yet',
+            style: TextStyle(color: AppColors.subText),
+          ),
+        );
+      }
+
+      return ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        children: docs.map((doc) {
+          final farmer = doc.data();
+
+          return _FarmerCard(
+            name: farmer['name'] ?? '',
+            variety: farmer['variety'] ?? '',
+            area: '${farmer['areaHa'] ?? 0} ha',
+            tag: farmer['disease'] ?? 'None',
+          );
+        }).toList(),
+      );
+    },
+  ),
+),
           ],
         ),
       ),
@@ -187,33 +235,61 @@ class _StatBox extends StatelessWidget {
     );
   }
 }
-
 class _QuickActionCard extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _QuickActionCard({
+    required this.onTap,
+  });
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFFE8A020), Color(0xFFF5C040)]),
-        borderRadius: BorderRadius.circular(22),
-      ),
-      child: Row(
-        children: const [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('QUICK ACTION', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
-                SizedBox(height: 8),
-                Text('Scan Rice Leaf', style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold)),
-                SizedBox(height: 6),
-                Text('Detect disease instantly →', style: TextStyle(color: Colors.white70, fontSize: 14)),
-              ],
-            ),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(22),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFE8A020), Color(0xFFF5C040)],
           ),
-          Text('🌿', style: TextStyle(fontSize: 52)),
-        ],
+          borderRadius: BorderRadius.circular(22),
+        ),
+        child: const Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'QUICK ACTION',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Scan Rice Leaf',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 6),
+                  Text(
+                    'Detect disease instantly →',
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+            Text('🌿', style: TextStyle(fontSize: 52)),
+          ],
+        ),
       ),
     );
   }
@@ -222,8 +298,13 @@ class _QuickActionCard extends StatelessWidget {
 class _SectionTitle extends StatelessWidget {
   final String title;
   final String? action;
+  final VoidCallback? onActionTap;
 
-  const _SectionTitle({required this.title, this.action});
+  const _SectionTitle({
+    required this.title,
+    this.action,
+    this.onActionTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -232,10 +313,27 @@ class _SectionTitle extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text(title, style: const TextStyle(color: AppColors.text, fontSize: 24, fontWeight: FontWeight.bold)),
+            child: Text(
+              title,
+              style: const TextStyle(
+                color: AppColors.text,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
           if (action != null)
-            Text(action!, style: const TextStyle(color: AppColors.green, fontSize: 14, fontWeight: FontWeight.bold)),
+            GestureDetector(
+              onTap: onActionTap,
+              child: Text(
+                action!,
+                style: const TextStyle(
+                  color: AppColors.green,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
         ],
       ),
     );
