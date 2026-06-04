@@ -38,28 +38,21 @@ dependencies:
   firebase_auth: ^6.5.1
   cloud_firestore: ^6.4.1
   image_picker: ^1.2.2
+  tflite_flutter: ^0.11.0
+  image: ^4.5.4
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  # The "flutter_lints" package below contains a set of recommended lints to
-  # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
-  # package. See that file for information about deactivating specific lint
-  # rules and activating additional ones.
   flutter_lints: ^6.0.0
 
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-
-# The following section is specific to Flutter packages.
 flutter:
-
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/models/riceguard_model.tflite
 
   # To add assets to your application, add an assets section, like this:
   # assets:
